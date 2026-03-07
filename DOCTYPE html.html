@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Proposal Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8 font-sans">
+
+    <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 border-l-4 border-blue-600 pl-3">Proposal Dashboard</h1>
+                <p class="text-gray-500 text-sm ml-4 mt-1">创建并管理您的业务提议方案</p>
+            </div>
+            <button onclick="clearAll()" class="group text-sm text-gray-400 hover:text-red-500 font-medium transition flex items-center gap-1">
+                <i class="fas fa-undo group-hover:-rotate-180 transition-transform duration-500"></i> Reset Dashboard
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8 transition-all hover:shadow-md">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Campaign Name</label>
+                    <input type="text" id="campaignName" placeholder="例如: 2024 春季促销..." 
+                           class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Terms & Conditions</label>
+                    <div class="relative">
+                        <select class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer transition">
+                            <option>1. Standard</option>
+                            <option>2. w/ Rebate</option>
+                            <option>3. Rebate w/ Subsidy</option>
+                            <option>4. Extra Subsidy</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-4 text-gray-400 pointer-events-none"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+                <h2 class="font-bold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-list-ul text-blue-500"></i> Proposal Plans
+                </h2>
+                <div id="planCountBadge" class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-black uppercase">0 PLANS</div>
+            </div>
+
+            <div class="p-0">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left" id="plansTable">
+                        <thead class="bg-gray-50/50">
+                            <tr class="text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                                <th class="px-6 py-4">Plan Name</th>
+                                <th class="px-6 py-4">Category</th>
+                                <th class="px-6 py-4 text-center">Rebate (RM)</th>
+                                <th class="px-6 py-4 text-center">Extra Subsidy</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-50">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div id="emptyState" class="py-12 text-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-folder-open text-gray-300 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-400 text-sm">还没有添加任何方案，开始点击下方按钮吧</p>
+                </div>
+
+                <div class="p-6 bg-gray-50/30 border-t border-gray-50 flex justify-center">
+                    <button onclick="addNewRow()" class="group flex items-center gap-3 bg-slate-800 hover:bg-black text-white px-10 py-3.5 rounded-xl font-bold shadow-xl shadow-slate-200 transition-all transform active:scale-95">
+                        <i class="fas fa-plus text-xs group-hover:rotate-90 transition-transform"></i>
+                        Add Line to Proposal
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-100">
+                <p class="text-blue-100 text-xs font-bold uppercase mb-1">Total Investment</p>
+                <h3 class="text-3xl font-black" id="totalInvestment">RM 0.00</h3>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-gray-200">
+                <p class="text-gray-400 text-xs font-bold uppercase mb-1">Average per Plan</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="avgInvestment">RM 0</h3>
+            </div>
+            <div class="flex items-center justify-center">
+                <button class="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 py-4 rounded-2xl font-black transition">
+                    GENERATE PROPOSAL PDF <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tableBody = document.getElementById('tableBody');
+        const emptyState = document.getElementById('emptyState');
+        const totalInvestmentEl = document.getElementById('totalInvestment');
+        const avgInvestmentEl = document.getElementById('avgInvestment');
+        const planCountBadge = document.getElementById('planCountBadge');
+
+        function updateSummary() {
+            const rows = tableBody.querySelectorAll('tr');
+            let total = 0;
+            
+            rows.forEach(row => {
+                const rebate = parseFloat(row.querySelector('.rebate-input').value) || 0;
+                const subsidy = parseFloat(row.querySelector('.subsidy-input').value) || 0;
+                total += (rebate + subsidy);
+            });
+
+            totalInvestmentEl.innerText = `RM ${total.toFixed(2)}`;
+            planCountBadge.innerText = `${rows.length} PLANS`;
+            avgInvestmentEl.innerText = rows.length > 0 ? `RM ${(total / rows.length).toFixed(0)}` : 'RM 0';
+            
+            emptyState.style.display = rows.length === 0 ? 'block' : 'none';
+        }
+
+        function addNewRow() {
+            const row = document.createElement('tr');
+            row.className = "hover:bg-blue-50/30 transition group";
+            row.innerHTML = `
+                <td class="px-6 py-4">
+                    <input type="text" placeholder="Plan Name..." class="w-full bg-transparent border-b border-transparent focus:border-blue-300 outline-none p-1 font-medium text-gray-700">
+                </td>
+                <td class="px-6 py-4">
+                    <select class="text-xs font-bold border border-gray-200 rounded-lg p-2 bg-white text-gray-600">
+                        <option>Standard</option>
+                        <option>Extra Subsidy</option>
+                        <option>Rebate w/o Device</option>
+                        <option>Rebate Only</option>
+                    </select>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1 border border-gray-100 focus-within:border-green-400 transition">
+                        <span class="text-xs text-gray-400 font-bold">RM</span>
+                        <input type="number" value="0" oninput="updateSummary()" class="rebate-input w-16 bg-transparent outline-none text-green-600 font-mono font-bold text-center">
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1 border border-gray-100 focus-within:border-orange-400 transition">
+                        <span class="text-xs text-gray-400 font-bold">RM</span>
+                        <input type="number" value="0" oninput="updateSummary()" class="subsidy-input w-16 bg-transparent outline-none text-orange-600 font-mono font-bold text-center">
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <button onclick="this.closest('tr').remove(); updateSummary();" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-300 hover:bg-red-100 hover:text-red-500 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+            updateSummary();
+        }
+
+        function clearAll() {
+            if(confirm('确定要清空所有数据吗？')) {
+                tableBody.innerHTML = '';
+                document.getElementById('campaignName').value = '';
+                updateSummary();
+            }
+        }
+
+        // Initialize with one row
+        addNewRow();
+    </script>
+</body>
+</html>
