@@ -193,5 +193,15 @@ document.querySelectorAll('button').forEach(btn => {
         };
     }
 });
+    // 确保这一块的结构是完整的
+document.querySelectorAll('button').forEach(btn => {
+    if(btn.innerText.includes("GENERATE PROPOSAL PDF")) {
+        btn.onclick = function() {
+            // ... 你的打印逻辑 ...
+            window.print();
+            // ... 恢复显示的逻辑 ...
+        }; // 这里一定要有分号和括号结束
+    }
+});
 </body>
 </html>
