@@ -172,36 +172,5 @@
         // Initialize with one row
         addNewRow();
     </script>
-    // 找到按钮并绑定点击事件
-document.querySelector('button:contains("GENERATE PROPOSAL PDF")') || 
-document.querySelectorAll('button').forEach(btn => {
-    if(btn.innerText.includes("GENERATE PROPOSAL PDF")) {
-        btn.onclick = function() {
-            // 暂时隐藏不需要打印的元素（比如“添加行”按钮和“操作”列）
-            const addBtn = document.querySelector('button[onclick="addNewRow()"]').parentElement;
-            const actionCells = document.querySelectorAll('th:last-child, td:last-child');
-            
-            addBtn.style.display = 'none';
-            actionCells.forEach(cell => cell.style.opacity = '0');
-
-            // 调用浏览器打印（在 Chrome 中可以选择“另存为 PDF”）
-            window.print();
-
-            // 打印完恢复显示
-            addBtn.style.display = 'flex';
-            actionCells.forEach(cell => cell.style.opacity = '1');
-        };
-    }
-});
-    // 确保这一块的结构是完整的
-document.querySelectorAll('button').forEach(btn => {
-    if(btn.innerText.includes("GENERATE PROPOSAL PDF")) {
-        btn.onclick = function() {
-            // ... 你的打印逻辑 ...
-            window.print();
-            // ... 恢复显示的逻辑 ...
-        }; // 这里一定要有分号和括号结束
-    }
-});
 </body>
 </html>
